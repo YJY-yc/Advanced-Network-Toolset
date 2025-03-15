@@ -27,7 +27,7 @@ from winotify import Notification
 
 
 
-vision = "3.5.1.3"
+vision = "3.5.1.4"
 url_text_1, filename_text_1 = "", ""
 
 listbook=None
@@ -72,7 +72,7 @@ config = {
     'size': (300, 30),
     'size_button': (100, 30),
     'window_pos': (100, 20),  
-    'window_size': [800, 500]  
+    'window_size': [800, 550]  
 }
 
 if not os.path.exists(target_folder):
@@ -123,28 +123,54 @@ windowPos = tuple(config['window_size'])
 def init_chat_ui(panel):
         vbox = wx.BoxSizer(wx.VERTICAL)
         
-        # 连接设置
+        
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         ip_ctrl = wx.TextCtrl(panel, value="127.0.0.1")
         port_ctrl = wx.TextCtrl(panel, value="5000")
+        disconnect_btn = wx.Button(panel, label="断开连接")
         connect_btn = wx.Button(panel, label="连接到...")
         start_btn = wx.Button(panel, label="启动服务")
         hbox1.Add(ip_ctrl, 1, wx.EXPAND|wx.ALL, 5)
         hbox1.Add(port_ctrl, 0, wx.EXPAND|wx.ALL, 5)
         hbox1.Add(connect_btn, 0, wx.ALL, 5)
         hbox1.Add(start_btn, 0, wx.ALL, 5)
+        hbox1.Add(disconnect_btn, 0, wx.ALL, 5)
         
-        # 聊天记录
         chat_list = wx.ListBox(panel, style=wx.LB_SINGLE, size=(400, 200))
-        
-        # 消息输入
+        def on_right_click(event):
+            menu = wx.Menu()
+            copy_item = menu.Append(wx.ID_ANY, "复制")
+            delete_item = menu.Append(wx.ID_ANY, "删除")
+            
+            # 绑定菜单事件
+            def on_copy(event):
+                selection = chat_list.GetSelection()
+                if selection != wx.NOT_FOUND:
+                    text = chat_list.GetString(selection)
+                    if wx.TheClipboard.Open():
+                        wx.TheClipboard.SetData(wx.TextDataObject(text))
+                        wx.TheClipboard.Close()
+            
+            def on_delete(event):
+                selection = chat_list.GetSelection()
+                if selection != wx.NOT_FOUND:
+                    chat_list.Delete(selection)
+            
+            chat_list.Bind(wx.EVT_MENU, on_copy, copy_item)
+            chat_list.Bind(wx.EVT_MENU, on_delete, delete_item)
+            
+            chat_list.PopupMenu(menu)
+            menu.Destroy()
+        chat_list.Bind(wx.EVT_CONTEXT_MENU, on_right_click)
+       
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         msg_ctrl = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
         send_btn = wx.Button(panel, label="发送")
         hbox2.Add(msg_ctrl, 1, wx.EXPAND|wx.ALL, 5)
         hbox2.Add(send_btn, 0, wx.ALL, 5)
+
+        disconnect_btn.Disable()
         
-        # 消息类型选择
         msg_type = wx.RadioBox(panel, label="消息类型", choices=["普通消息", "加急消息", "命令行"])
         
         vbox.Add(hbox1, 0, wx.EXPAND|wx.ALL, 5)
@@ -159,13 +185,13 @@ def init_chat_ui(panel):
        
         hbox3.Add(export_btn, 0, wx.ALL, 5)
         panel.SetSizer(vbox)
-        # 添加消息显示文本框
+        
         msg_display = wx.TextCtrl(panel, style=wx.TE_MULTILINE|wx.TE_READONLY)
         
         vbox.Add(hbox3, 0, wx.EXPAND|wx.ALL, 5)
         vbox.Add(msg_display, 1, wx.EXPAND|wx.ALL, 5)
         
-        # 绑定显示按钮事件
+       
         def on_show_message(event):
             selection = chat_list.GetSelection()
             if selection != wx.NOT_FOUND:
@@ -175,7 +201,7 @@ def init_chat_ui(panel):
                 wx.MessageBox("请先选择一条消息", "提示", wx.OK | wx.ICON_INFORMATION)
         
         show_btn.Bind(wx.EVT_BUTTON, on_show_message)
-        # 保存控件引用
+        
         controls = {
         'ip_ctrl': ip_ctrl,
         'port_ctrl': port_ctrl,
@@ -185,6 +211,7 @@ def init_chat_ui(panel):
         'msg_ctrl': msg_ctrl,
         'send_btn': send_btn,
         'msg_type': msg_type,
+        'disconnect_btn': disconnect_btn, 
         'sock': None,
         'msg_display': msg_display,
         'server_socket': None,
@@ -212,8 +239,29 @@ def init_chat_ui(panel):
                     wx.MessageBox(f"无法保存文件 {pathname}", "错误", wx.OK | wx.ICON_ERROR)
 
         export_btn.Bind(wx.EVT_BUTTON, on_export_chat)
-    
-        # 修改事件绑定
+        def on_disconnect(event):
+            if 'sock' in controls and controls['sock']:
+                try:
+                    controls['sock'].close()
+                    controls['sock'] = None  
+                except:
+                    pass
+            if 'original_sock' in controls and controls['original_sock']:
+                try:
+                    controls['original_sock'].close()
+                    controls['original_sock'] = None  
+                except:
+                    pass
+            controls['ip_ctrl'].Enable()
+            controls['connect_btn'].Enable()
+            controls['start_btn'].Enable()
+            controls['ip_ctrl'].SetValue("127.0.0.1")
+            controls['port_ctrl'].SetValue(str(int(controls['port_ctrl'].GetValue()) + 2))
+            controls['msg_ctrl'].Enable()
+            controls['send_btn'].Enable()
+            wx.MessageBox("已断开所有连接", "提示", wx.OK | wx.ICON_INFORMATION)
+           
+        disconnect_btn.Bind(wx.EVT_BUTTON, on_disconnect)
         connect_btn.Bind(wx.EVT_BUTTON, lambda event: on_connect(event, controls, controls['sock'], controls['server_socket']))
         start_btn.Bind(wx.EVT_BUTTON, lambda event: on_start_server(event, controls))
         send_btn.Bind(wx.EVT_BUTTON, lambda event: on_send(event, controls, controls['sock'], controls['toast']))
@@ -245,7 +293,7 @@ def options(event):
     port_ctrl = wx.SpinCtrl(port_panel, value=str(config.get('default_port', 1524)), 
                           pos=(100, 0), min=1024, max=65535)
     
-    # 添加自动打开浏览器选项
+    
     auto_open_browser = wx.CheckBox(port_panel, label="启动后自动打开浏览器", 
                                   pos=(10, 80))
     auto_open_browser.SetValue(config.get('auto_open_browser', True))
@@ -288,17 +336,15 @@ def options(event):
 
     def on_save_config(event):
         global Pos
-        global fontname, FontSize  # 添加全局字体变量
+        global fontname, FontSize  
     
         Pos = (pos_x_ctrl.GetValue(), pos_y_ctrl.GetValue())
         frame.SetSize((width_ctrl.GetValue(), height_ctrl.GetValue()))
         frame.SetPosition(Pos)
     
-        # 更新字体设置
         fontname = font_choice.GetStringSelection()
         FontSize = font_size_ctrl.GetValue()
         
-        # 更新配置
         config['default_port'] = port_ctrl.GetValue()
         config['auto_open_browser'] = auto_open_browser.GetValue()
         config['window_pos'] = Pos
@@ -306,11 +352,10 @@ def options(event):
         config['font_name'] = fontname
         config['font_size'] = FontSize
         
-        # 保存配置
+        
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(config, f, ensure_ascii=False, indent=4)
-        
-    # 更新主窗口字体
+   
         frame.SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
         listbook.SetFont(wx.Font(ListButtonSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
         
@@ -703,7 +748,7 @@ def main():
 
 
 
-    # 分析网页面板
+    
     url_label_analyze = wx.StaticText(panel3, label="URL:", pos=(10, 20)).SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     url_text_analyze = wx.TextCtrl(panel3, pos=(120, 20), size=Size)
     url_text_analyze.Bind(wx.EVT_ENTER_WINDOW, lambda event: url3(frame, event))
@@ -713,11 +758,10 @@ def main():
     analyze_button.SetFont(wx.Font(FontSize-4, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     analyze_button.Bind(wx.EVT_ENTER_WINDOW, lambda event: frame.SetStatusText("点击分析网页"))
     analyze_button.Bind(wx.EVT_BUTTON, on_analyze)
-    #关于
+    
     wx.StaticText(panel4, label="关于软件", pos=(10, 0)).SetFont(wx.Font(FontSize+10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     wx.StaticText(panel4, label="作者:YJY_\n版本:"+vision+"\n文件保存路径: "+dirs+"\n默认端口"+str(config.get('default_port', 1524)), pos=(10, 70)).SetFont(wx.Font(FontSize-7, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
 
-    # 添加更新服务器链接
     update_link = wx.Button(panel4, label="更新服务器", 
                           pos=(0, 150), style=wx.BORDER_NONE, size=(100, 30))
     update_link.SetForegroundColour(wx.Colour(0, 0, 255))
@@ -737,8 +781,7 @@ def main():
     """创建图形化界面"""
     
 
-    
-    # 控件
+
     port_label = wx.StaticText(panel6,label="端口号:", pos=(10, 20)).SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     port_text = wx.TextCtrl(panel6,pos=(110, 20), size=(100, -1))
     port_text.SetValue(str(config.get('default_port', 1524)))
@@ -757,7 +800,7 @@ def main():
     stop_button = wx.Button(panel6, label="停止", pos=(100, 270), size=(80, -1))
     stop_button.Disable()
     
-    # 事件处理
+   
     def on_browse(event):
         dlg = wx.FileDialog(frame, "选择要共享的文件", wildcard="All files (*.*)|*.*")
         if dlg.ShowModal() == wx.ID_OK:
@@ -775,7 +818,7 @@ def main():
         print(file_path)
 
             
-        # 添加到历史记录
+        
         history_path = os.path.join(target_folder, "history.json")
         history = []
         if os.path.exists(history_path):
@@ -810,7 +853,6 @@ def main():
         start_button.Enable()
         stop_button.Disable()
     
-    # 绑定事件
     browse_button.Bind(wx.EVT_BUTTON, on_browse)
     start_button.Bind(wx.EVT_BUTTON, on_start)
     stop_button.Bind(wx.EVT_BUTTON, on_stop)
@@ -826,9 +868,65 @@ def main():
         return []
     
     history_list = wx.ListCtrl(panel5, style=wx.LC_REPORT|wx.LC_SINGLE_SEL, pos=(10, 10), size=(windowPos[0]-170,windowPos[1]-130))
-    history_list.InsertColumn(0, 'URL', width=100)
-    history_list.InsertColumn(1, '文件', width=400)
+    history_list.InsertColumn(0, 'URL', width=300)
+    history_list.InsertColumn(1, '文件', width=200)
     history_list.InsertColumn(2, '时间', width=150)
+    
+    # 添加右键菜单功能
+    def on_right_click(event):
+        menu = wx.Menu()
+        
+        # 复制URL
+        copy_url_item = menu.Append(wx.ID_ANY, "复制URL")
+        # 复制文件名
+        copy_filename_item = menu.Append(wx.ID_ANY, "复制文件名")
+        # 删除
+        delete_item = menu.Append(wx.ID_ANY, "删除")
+        
+        # 绑定菜单事件
+        def on_copy_url(event):
+            selected = history_list.GetFirstSelected()
+            if selected != -1:
+                url = history_list.GetItem(selected, 0).GetText()
+                if wx.TheClipboard.Open():
+                    wx.TheClipboard.SetData(wx.TextDataObject(url))
+                    wx.TheClipboard.Close()
+        
+        def on_copy_filename(event):
+            selected = history_list.GetFirstSelected()
+            if selected != -1:
+                filename = history_list.GetItem(selected, 1).GetText()
+                if wx.TheClipboard.Open():
+                    wx.TheClipboard.SetData(wx.TextDataObject(filename))
+                    wx.TheClipboard.Close()
+        
+        def on_delete(event):
+            selected = history_list.GetFirstSelected()
+            if selected != -1:
+                # 从列表中删除
+                history_list.DeleteItem(selected)
+                # 从文件中删除
+                history = load_history()
+                del history[selected]
+                with open(os.path.join(target_folder, "history.json"), 'w', encoding='utf-8') as f:
+                    json.dump(history, f, ensure_ascii=False, indent=4)
+        
+        history_list.Bind(wx.EVT_MENU, on_copy_url, copy_url_item)
+        history_list.Bind(wx.EVT_MENU, on_copy_filename, copy_filename_item)
+        history_list.Bind(wx.EVT_MENU, on_delete, delete_item)
+        
+        history_list.PopupMenu(menu)
+        menu.Destroy()
+    
+    history_list.Bind(wx.EVT_CONTEXT_MENU, on_right_click)
+    # 绑定窗口大小改变事件
+    def on_resize(event):
+        new_size = frame.GetSize()
+        history_list.SetSize((new_size[0]-170, new_size[1]-130))
+        event.Skip()
+    
+    frame.Bind(wx.EVT_SIZE, on_resize)
+
     for record in load_history():
         history_list.Append([record['url'], record['filename'], record['time']])
     def on_copy_url(event):
