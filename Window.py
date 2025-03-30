@@ -1,5 +1,5 @@
 
-vision = "3.5.1.5"
+vision = "3.5.1.7"
 
 
 import wx
@@ -21,7 +21,7 @@ from ChatPort import *
 from winotify import Notification
 
 import wx.adv
-
+import DatchDownload 
 import requests,time,wx
 import webbrowser
 from bs4 import BeautifulSoup
@@ -40,7 +40,7 @@ url_text_1, filename_text_1 = "", ""
 
 listbook=None
 url_text_analyze=None
-
+time_ctrl=None
 
 
 roaming_path = os.getenv('APPDATA') + ''
@@ -125,6 +125,72 @@ windowPos = tuple(config['window_size'])
 
 
 
+def init_download_tab(panel):
+ 
+    vbox = wx.BoxSizer(wx.VERTICAL)
+    
+
+    hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+    import_btn = wx.Button(panel, label="导入网址文件")
+    hbox0.Add(import_btn, 0, wx.ALL|wx.CENTER, 5)
+    vbox.Add(hbox0, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+    
+  
+    hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+    main_site_label = wx.StaticText(panel, label="主网站:")
+    main_site_text = wx.TextCtrl(panel)
+    hbox3.Add(main_site_label, 0, wx.ALL|wx.CENTER, 5)
+    hbox3.Add(main_site_text, 1, wx.ALL|wx.EXPAND, 5)
+    vbox.Add(hbox3, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+    
+
+    hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+    thread_label = wx.StaticText(panel, label="线程数:")
+    thread_spin = wx.SpinCtrl(panel, min=1, max=10, initial=4)
+    hbox2.Add(thread_label, 0, wx.ALL|wx.CENTER, 5)
+    hbox2.Add(thread_spin, 1, wx.ALL|wx.EXPAND, 5)
+    vbox.Add(hbox2, 0, wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, 10)
+    
+ 
+    undownloaded_list = wx.ListBox(panel, style=wx.LB_SINGLE)
+    vbox.Add(undownloaded_list, 1, wx.ALL|wx.EXPAND, 10)
+    
+
+    download_btn = wx.Button(panel, label="开始下载")
+    vbox.Add(download_btn, 0, wx.ALL|wx.CENTER, 10)
+    
+
+    import_btn.Bind(wx.EVT_BUTTON, lambda event: on_import(panel, undownloaded_list))
+    download_btn.Bind(wx.EVT_BUTTON, lambda event: DatchDownload.create_download_window(
+        panel, 
+        panel.urls, 
+        thread_spin.GetValue(), 
+        main_site_text.GetValue(), 
+        DatchDownload.get_download_dir()
+    ))
+
+    panel.urls = []
+    
+    panel.SetSizer(vbox)
+
+def on_import(panel, undownloaded_list):
+    with wx.FileDialog(panel, "选择网址文件", wildcard="Text files (*.txt)|*.txt",
+                     style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
+        if fileDialog.ShowModal() == wx.ID_CANCEL:
+            return []
+        
+        path = fileDialog.GetPath()
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                urls = [line.strip() for line in f if line.strip()]
+                wx.MessageBox(f"成功导入 {len(urls)} 个网址", "提示", wx.OK|wx.ICON_INFORMATION)
+                undownloaded_list.Set(urls)
+                panel.urls = urls
+                return urls
+        except Exception as e:
+            wx.MessageBox(f"导入文件失败: {str(e)}", "错误", wx.OK|wx.ICON_ERROR)
+            return []
+
 
 
 
@@ -150,7 +216,7 @@ def init_chat_ui(panel):
             copy_item = menu.Append(wx.ID_ANY, "复制")
             delete_item = menu.Append(wx.ID_ANY, "删除")
             
-            # 绑定菜单事件
+           
             def on_copy(event):
                 selection = chat_list.GetSelection()
                 if selection != wx.NOT_FOUND:
@@ -227,16 +293,16 @@ def init_chat_ui(panel):
             app_id="内网聊天程序",
             title="新消息",
             duration="short"
-        )  # 使用winotify的Notification
+        )  
         }
         def on_export_chat(event):
             with wx.FileDialog(frame, "导出聊天记录", wildcard="Text files (*.txt)|*.txt",
                             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
 
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
-                    return     # 用户取消
+                    return     
 
-                # 保存文件路径
+              
                 pathname = fileDialog.GetPath()
                 try:
                     with open(pathname, 'w', encoding='utf-8') as f:
@@ -279,10 +345,10 @@ def init_chat_ui(panel):
 
 username_ctrl,password_ctrl=None,None
 
-
+check=None
 
 def on_analyze(event):
-    global url_text_analyze,username_ctrl,password_ctrl
+    global url_text_analyze,time_ctrl,check
     head="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
     try:
         header_path = os.path.join(target_folder, "Head.ANT")
@@ -291,10 +357,9 @@ def on_analyze(event):
                 head=f.read()
     except:
         head="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
-    username = username_ctrl.GetValue()
-    password = password_ctrl.GetValue()
+
     
-    analyze.on_analyze_button(url_text_analyze.GetValue(), head, username, password)
+    analyze.on_analyze_button(url_text_analyze.GetValue(), head,int(time_ctrl.GetValue()),check.GetValue())
 
 def options(event):
     global dirs
@@ -319,7 +384,7 @@ def options(event):
     port_panel = wx.Panel(notebook)
     header_panel = wx.Panel(notebook) 
 
-    wx.StaticText(header_panel, label="请求头设置:", pos=(10, 10))
+    wx.StaticText(header_panel, label="请求头User-Agent设置:", pos=(10, 10))
     header_text = wx.TextCtrl(header_panel, pos=(10, 30), size=(350, 100), 
                             style=wx.TE_MULTILINE)
 
@@ -328,8 +393,8 @@ def options(event):
         with open(header_path, 'r', encoding='utf-8') as f:
             header_text.SetValue(f.read())
 
-    # 默认请求头设置
-    wx.StaticText(header_panel, label="默认请求头:", pos=(10, 140))
+  
+    wx.StaticText(header_panel, label="默认请求头User-Agent:", pos=(10, 140))
     default_header_text = wx.TextCtrl(header_panel, pos=(10, 160), size=(350, 100), 
                                     style=wx.TE_MULTILINE|wx.TE_READONLY)
     default_header_text.SetValue("""Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36""")
@@ -673,7 +738,7 @@ def create_tray_icon():
     tray = wx.adv.TaskBarIcon()
     tray.SetIcon(icon, "Advanced Network Toolset")
     
-    # 创建托盘菜单
+
     def create_menu():
         menu = wx.Menu()
         show_item = menu.Append(wx.ID_ANY, "显示窗口")
@@ -682,7 +747,7 @@ def create_tray_icon():
         opt_item = menu.Append(wx.ID_ANY, "首选项")
         exit_item = menu.Append(wx.ID_EXIT, "退出")
         
-        # 绑定菜单事件
+    
         def on_show(event):
             frame.Show()
             frame.Raise()
@@ -694,7 +759,7 @@ def create_tray_icon():
             frame.Hide()
         def on_check(event):
             
-            show_update_dialog("V"+vision)
+            wx.CallAfter(show_update_dialog, "V"+vision)
         def opt_check(event):
             options(event)
         tray.Bind(wx.EVT_MENU, on_show, show_item)
@@ -704,7 +769,7 @@ def create_tray_icon():
         tray.Bind(wx.EVT_MENU, opt_check,opt_item)
         return menu
     
-    # 双击事件处理
+
     def on_tray_double_click(event):
         frame.Show()
         frame.Raise()
@@ -712,7 +777,7 @@ def create_tray_icon():
         
     tray.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, on_tray_double_click)
     
-    # 右键点击事件处理
+ 
     def on_right_click(event):
         tray.PopupMenu(create_menu())
         
@@ -720,22 +785,25 @@ def create_tray_icon():
     return tray
 
 def main():
-    global url_text_1, filename_text_1
+    global url_text_1, filename_text_1,check
     global url_text, filename_text, thread_choice, packet_size_choice, download_button_2
     global listbook
     global url_text_analyze
     global listbook, panel5 
     global username_ctrl,password_ctrl
+    global time_ctrl
     app = wx.App()
     il = wx.ImageList(32,32)
     bmp1 = wx.Bitmap('icons/path_to_icon1.png')
-    
     bmp2 = wx.Bitmap('icons/path_to_icon2.png')
     bmp3 = wx.Bitmap('icons/path_to_icon3.png')
     bmp4 = wx.Bitmap('icons/path_to_icon4.png')
     bmp5 = wx.Bitmap('icons/path_to_icon5.png')
     bmp6 = wx.Bitmap('icons/path_to_icon6.png')
     bmp7 = wx.Bitmap('icons/path_to_icon7.png')
+    bmp8 = wx.Bitmap('icons/home.png') 
+    bmp9 = wx.Bitmap('icons/arrow.png')  
+    bmp10 = wx.Bitmap('icons/path_to_icon8.png')
     il.Add(bmp1)
     il.Add(bmp2)
     il.Add(bmp3)
@@ -743,7 +811,10 @@ def main():
     il.Add(bmp5)
     il.Add(bmp6)
     il.Add(bmp7)
-
+    il.Add(bmp8)
+    il.Add(bmp9)
+    il.Add(bmp10)
+    
     
     icon = wx.Icon('icons/path_to_icon1.png', wx.BITMAP_TYPE_PNG)
     tray = wx.adv.TaskBarIcon()
@@ -752,7 +823,7 @@ def main():
     global frame 
     frame = wx.Frame(None, title="Advanced Network Toolset(ANT)", size=windowPos) 
    
-
+    
 
     def on_close(event):
         frame.Hide()
@@ -768,7 +839,7 @@ def main():
     listbook.SetFont(wx.Font(ListButtonSize, wx.FONTFAMILY_DEFAULT, 
                   wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, 
                   faceName=fontname))
-
+    panel0 = wx.Panel(listbook)
     panel1 = wx.Panel(listbook)
     panel2 = wx.Panel(listbook)
     panel3 = wx.Panel(listbook)
@@ -776,6 +847,8 @@ def main():
     panel5 = wx.Panel(listbook)
     panel6 = wx.Panel(listbook)
     panel7 = wx.Panel(listbook)
+    panel8 = wx.Panel(listbook)
+    panel0.SetBackgroundColour(wx.Colour(255, 255, 255))
     panel1.SetBackgroundColour(wx.Colour(255, 255, 255))
     panel2.SetBackgroundColour(wx.Colour(255, 255, 255))
     panel3.SetBackgroundColour(wx.Colour(255, 255, 255))
@@ -783,16 +856,20 @@ def main():
     panel5.SetBackgroundColour(wx.Colour(255, 255, 255))
     panel6.SetBackgroundColour(wx.Colour(255, 255, 255))
     panel7.SetBackgroundColour(wx.Colour(255, 255, 255))
+    panel8.SetBackgroundColour(wx.Colour(255, 255, 255))
+    listbook.AddPage(panel0, "主页", imageId=7)
     listbook.AddPage(panel1, "普通下载", imageId=0)
     listbook.AddPage(panel2, "高级下载", imageId=1)
+    listbook.AddPage(panel8, "批量下载", imageId=9)
     listbook.AddPage(panel3, "分析网页", imageId=2)
     listbook.AddPage(panel6, "转发文件", imageId=5)
     listbook.AddPage(panel7, "内网聊天", imageId=6)
     listbook.AddPage(panel5, "历史记录", imageId=4)
     listbook.AddPage(panel4, "关于...", imageId=3)
+    
     init_chat_ui(panel7)
     
-    
+    init_download_tab(panel8)
 
     url_label_1 = wx.StaticText(panel1, label="URL:", pos=(10, 20))
     url_label_1.SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
@@ -879,38 +956,23 @@ def main():
     link_to_2.Bind(wx.EVT_BUTTON, on_go_to_file) 
 
 
-
-
     
     url_label_analyze = wx.StaticText(panel3, label="URL:", pos=(10, 20)).SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     url_text_analyze = wx.TextCtrl(panel3, pos=(120, 20), size=Size)
     url_text_analyze.Bind(wx.EVT_ENTER_WINDOW, lambda event: url3(frame, event))
     url_text_analyze.Bind(wx.EVT_LEAVE_WINDOW, lambda event: on_leave(frame, event))
 
-    analyze_button = wx.Button(panel3, label="分析", pos=(10, 70), size=SizeButton)
+    analyze_button = wx.Button(panel3, label="分析", pos=(10, 160), size=SizeButton)
     analyze_button.SetFont(wx.Font(FontSize-4, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     analyze_button.Bind(wx.EVT_ENTER_WINDOW, lambda event: frame.SetStatusText)
     analyze_button.Bind(wx.EVT_BUTTON, on_analyze)
 
+    check=wx.CheckBox(panel3, label="渲染源码（更慢）", 
+                                  pos=(10, 120))
+    wx.StaticText(panel3, label="超时时间:", pos=(10, 70))
+    time_ctrl = wx.SpinCtrl(panel3, value="5", 
+                          pos=(120, 70), min=1, max=120)
 
-        # 用户名输入框
-    username_label = wx.StaticText(panel3, label="用户名:", pos=(10, 100))
-    username_label.SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
-    username_label.Bind(wx.EVT_ENTER_WINDOW, lambda event: url3(frame, event))
-
-    # 密码输入框
-    password_label = wx.StaticText(panel3, label="密码:", pos=(10, 160))
-    password_label.SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
-    password_label.Bind(wx.EVT_ENTER_WINDOW, lambda event: url3(frame, event))
-        # 密码输入框
-  
-    
-    password_ctrl = wx.TextCtrl(panel3, pos=(120, 160), size=(200, -1), style=wx.TE_PASSWORD)
-    password_ctrl.Bind(wx.EVT_LEAVE_WINDOW, lambda event: on_leave(frame, event))
-    username_ctrl = wx.TextCtrl(panel3, pos=(120, 100), size=(200, -1), style=wx.TE_PASSWORD)
-    username_ctrl.Bind(wx.EVT_LEAVE_WINDOW, lambda event: on_leave(frame, event))
-    # 用户名输入框
-    
     
     wx.StaticText(panel4, label="关于软件", pos=(10, 0)).SetFont(wx.Font(FontSize+10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     wx.StaticText(panel4, label="作者:YJY_\n版本:"+vision+"\n文件保存路径: "+dirs+"\n默认端口"+str(config.get('default_port', 1524)), pos=(10, 70)).SetFont(wx.Font(FontSize-7, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
@@ -931,8 +993,6 @@ def main():
     download_button_op.Bind(wx.EVT_BUTTON, options)
 
 
-    """创建图形化界面"""
-    
 
 
     port_label = wx.StaticText(panel6,label="端口号:", pos=(10, 20)).SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
@@ -954,6 +1014,62 @@ def main():
     stop_button.Disable()
     
    
+
+
+
+    def create_home_button(label, target_page, icon_idx):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        button = wx.Button(panel0, label=label, size=(200, 40))
+        button.SetFont(wx.Font(FontSize-4, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
+        button.SetBackgroundColour(wx.Colour(50, 200, 200))
+       
+        icon = wx.StaticBitmap(panel0, bitmap=il.GetBitmap(icon_idx))
+        arrow = wx.StaticBitmap(panel0, bitmap=il.GetBitmap(8)) 
+        
+        sizer.Add(icon, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+        sizer.Add(button, 1, wx.EXPAND|wx.ALL, 5)
+        sizer.Add(arrow, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+        
+        button.Bind(wx.EVT_BUTTON, lambda e: listbook.ChangeSelection(target_page))
+        return sizer
+
+    
+    main_sizer = wx.BoxSizer(wx.VERTICAL)
+    main_sizer.AddSpacer(50)
+    wx.StaticText(panel0,label="主页", pos=(10, 0)).SetFont(wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
+    main_sizer.Add(create_home_button("普通下载", 1, 0), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("高级下载", 2, 1), 0, wx.EXPAND|wx.ALL,0)
+    main_sizer.Add(create_home_button("网页分析", 3, 2), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("文件转发", 4, 5), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("内网聊天", 5, 6), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("历史记录", 6, 4), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("关于软件/首选项", 7, 3), 0, wx.EXPAND|wx.ALL, 0)
+    header_path = os.path.join(target_folder, "Head.ANT")
+    try:
+        if os.path.exists(header_path):
+            with open(header_path, 'r', encoding='utf-8') as f:
+                head=f.read()
+            if head=="":
+                wx.StaticText(panel0,label="请完成请求头设置(关于>首选项>请求头)", pos=(10, 420)).SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
+        else:
+            wx.StaticText(panel0,label="请完成请求头设置(关于>首选项>请求头)", pos=(10, 420)).SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
+    except:
+        wx.StaticText(panel0,label="请完成请求头设置(关于>首选项>请求头)", pos=(10, 420)).SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
+    panel0.SetSizer(main_sizer)
+
+
+
+    
+    listbook.ChangeSelection(0)
+
+
+
+
+
+
+
+
+
     def on_browse(event):
         dlg = wx.FileDialog(frame, "选择要共享的文件", wildcard="All files (*.*)|*.*")
         if dlg.ShowModal() == wx.ID_OK:
@@ -1025,18 +1141,18 @@ def main():
     history_list.InsertColumn(1, '文件', width=200)
     history_list.InsertColumn(2, '时间', width=150)
     
-    # 添加右键菜单功能
+   
     def on_right_click(event):
         menu = wx.Menu()
         
-        # 复制URL
+        
         copy_url_item = menu.Append(wx.ID_ANY, "复制URL")
-        # 复制文件名
+       
         copy_filename_item = menu.Append(wx.ID_ANY, "复制文件名")
-        # 删除
+      
         delete_item = menu.Append(wx.ID_ANY, "删除")
         
-        # 绑定菜单事件
+       
         def on_copy_url(event):
             selected = history_list.GetFirstSelected()
             if selected != -1:
@@ -1056,9 +1172,9 @@ def main():
         def on_delete(event):
             selected = history_list.GetFirstSelected()
             if selected != -1:
-                # 从列表中删除
+                
                 history_list.DeleteItem(selected)
-                # 从文件中删除
+                
                 history = load_history()
                 del history[selected]
                 with open(os.path.join(target_folder, "history.json"), 'w', encoding='utf-8') as f:
@@ -1072,7 +1188,7 @@ def main():
         menu.Destroy()
     
     history_list.Bind(wx.EVT_CONTEXT_MENU, on_right_click)
-    # 绑定窗口大小改变事件
+    
     def on_resize(event):
         new_size = frame.GetSize()
         history_list.SetSize((new_size[0]-170, new_size[1]-130))
