@@ -1,8 +1,14 @@
 
 # Advanced Network Toolset (ANT)
 
-ANT 是一个多功能网络工具集，主要用于文件下载、网页分析、文件共享和内网聊天等功能。它基于Python开发，使用wxPython构建图形界面。
+> ANT 是一个多功能网络工具集，主要用于文件下载、网页分析、文件共享和内网聊天等功能。它基于Python开发，使用wxPython构建图形界面。
 
+
+| 版本 | 下载 |
+| ---- | ---- |
+| 3.5.1.7 | [下载](https://yjymain.lanzouq.com/iF95e2s5p2cf) |
+| 3.5.1.6 | [下载](https://yjymain.lanzouq.com/ia8rb2re3xje) |
+| 更多版本下载 | [链接](https://yjymain.rth1.xyz/) |
 ## 主要功能
 
 ### 1. 文件下载
@@ -25,6 +31,12 @@ ANT 是一个多功能网络工具集，主要用于文件下载、网页分析�
 ### 5. 历史记录
 - 记录所有下载和文件共享操作
 - 支持复制历史记录的URL
+- 
+### 1. 批量下载
+- 支持批量下载多个文件
+- 线程数可自定义
+- 可导出下载进度
+
 
 ## 技术特点
 
@@ -55,15 +67,23 @@ ANT 是一个多功能网络工具集，主要用于文件下载、网页分析�
 2. 输入文件名
 3. 输入线程数和分块大小
 
+### 3. 批量下载
+1. 导入批量下载文件（TXT）
+2. 选择线程数
+3. 点击"开始下载"按钮
+
+
 *注意：*
 - 线程数并非越多越好，线程数过多会导致CPU占用过高，反而降低下载速度
 - 分块大小过小可能会导致下载速度变慢
 - 此功能处于开发阶段
 
+
 # 网页分析
 1. 输入网页URL
 2. 点击"分析"按钮
 3. 网页内容将显示在新窗口中
+4. 可选择是否渲染源码
 
 # 转发文件
 1. 输入文件路径
@@ -152,6 +172,7 @@ ANT 是一个多功能网络工具集，主要用于文件下载、网页分析�
 
 ## 屏幕截图
 ![Snipaste_2025-03-09_20-10-25](https://github.com/user-attachments/assets/5f91b6d7-4cce-4272-a73a-559460746777)
+
 ![Snipaste_2025-03-09_20-09-34](https://github.com/user-attachments/assets/4dfcd6cd-dd2d-4aef-b563-e82cfee4974f)
 ![Snipaste_2025-03-09_20-12-08](https://github.com/user-attachments/assets/de9e87bf-b113-4826-b7ed-5d548e41cf45)
 ![Snipaste_2025-03-09_20-11-56](https://github.com/user-attachments/assets/a140ae4a-8bd1-4566-a928-1c143508ef6e)
