@@ -1,11 +1,12 @@
 
 # Advanced Network Toolset (ANT)
 
-> ANT 是一个多功能网络工具集，主要用于文件下载、网页分析、文件共享和内网聊天等功能。它基于Python开发，使用wxPython构建图形界面。
+> ANT **高级网络工具** 是一个多功能网络工具集，主要用于文件下载、网页分析、文件共享和内网聊天等功能。它基于Python开发，使用wxPython构建图形界面。
 
 
-| 版本 | 下载 |
+| 版本 | 下载 | 
 | ---- | ---- |
+| 3.5.1.8 | [下载](https://yjymain.lanzouq.com/iKXV92spa7mf) |
 | 3.5.1.7 | [下载](https://yjymain.lanzouq.com/iF95e2s5p2cf) |
 | 3.5.1.6 | [下载](https://yjymain.lanzouq.com/ia8rb2re3xje) |
 | 更多版本下载 | [链接](https://yjymain.rth1.xyz/) |
@@ -53,7 +54,7 @@
 ### 1. 初始化
 运行软件，将自动完成初始化
 *这将会：*
-- 在APPDATA文件夹下创建配置文件（Downloader）
+- 在APPDATA文件夹下创建配置文件（NetDownloader）
 - 创建下载目录（"D:/downloads/）
 
 
@@ -100,7 +101,7 @@
 
 # 历史记录
 1. 选择要复制的历史记录
-2. 点击"复制"按钮
+2. 右键菜单点击"复制"按钮
 3. 历史记录的URL将复制到剪贴板
 
 
