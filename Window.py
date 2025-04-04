@@ -1,5 +1,5 @@
 
-vision = "3.5.1.7"
+vision = "3.5.1.8"
 
 
 import wx
@@ -290,7 +290,7 @@ def init_chat_ui(panel):
         'msg_display': msg_display,
         'server_socket': None,
         'toast': Notification(
-            app_id="内网聊天程序",
+            app_id="内网聊天",
             title="新消息",
             duration="short"
         )  
@@ -1000,9 +1000,9 @@ def main():
     port_text.SetValue(str(config.get('default_port', 1524)))
     
     file_label = wx.StaticText(panel6,label="文件路径:", pos=(10, 60)).SetFont(wx.Font(FontSize, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
-    file_text = wx.TextCtrl(panel6,pos=(110, 60), size=(200, -1))
+    file_text = wx.TextCtrl(panel6,pos=(130, 60), size=(200, -1))
     
-    browse_button = wx.Button(panel6,label="浏览...", pos=(340, 60), size=(80, -1))
+    browse_button = wx.Button(panel6,label="浏览...", pos=(360, 60), size=(80, -1))
     
     log_text = wx.TextCtrl(panel6, pos=(10, 100), size=(530, 170), 
                         style=wx.TE_MULTILINE|wx.TE_READONLY)
@@ -1019,7 +1019,7 @@ def main():
 
     def create_home_button(label, target_page, icon_idx):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        button = wx.Button(panel0, label=label, size=(200, 40))
+        button = wx.Button(panel0, label=label, size=(200, 35))
         button.SetFont(wx.Font(FontSize-4, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
         button.SetBackgroundColour(wx.Colour(50, 200, 200))
        
@@ -1036,14 +1036,15 @@ def main():
     
     main_sizer = wx.BoxSizer(wx.VERTICAL)
     main_sizer.AddSpacer(50)
-    wx.StaticText(panel0,label="主页", pos=(10, 0)).SetFont(wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
+    wx.StaticText(panel0,label="主页 高级网络工具ANT", pos=(10, 0)).SetFont(wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, faceName=fontname))
     main_sizer.Add(create_home_button("普通下载", 1, 0), 0, wx.EXPAND|wx.ALL, 0)
     main_sizer.Add(create_home_button("高级下载", 2, 1), 0, wx.EXPAND|wx.ALL,0)
-    main_sizer.Add(create_home_button("网页分析", 3, 2), 0, wx.EXPAND|wx.ALL, 0)
-    main_sizer.Add(create_home_button("文件转发", 4, 5), 0, wx.EXPAND|wx.ALL, 0)
-    main_sizer.Add(create_home_button("内网聊天", 5, 6), 0, wx.EXPAND|wx.ALL, 0)
-    main_sizer.Add(create_home_button("历史记录", 6, 4), 0, wx.EXPAND|wx.ALL, 0)
-    main_sizer.Add(create_home_button("关于软件/首选项", 7, 3), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("批量下载", 3, 9), 0, wx.EXPAND|wx.ALL,0)
+    main_sizer.Add(create_home_button("网页分析", 4, 2), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("文件转发", 5, 5), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("内网聊天", 6, 6), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("历史记录", 7, 4), 0, wx.EXPAND|wx.ALL, 0)
+    main_sizer.Add(create_home_button("关于软件/首选项", 8, 3), 0, wx.EXPAND|wx.ALL, 0)
     header_path = os.path.join(target_folder, "Head.ANT")
     try:
         if os.path.exists(header_path):
@@ -1063,19 +1064,12 @@ def main():
     listbook.ChangeSelection(0)
 
 
-
-
-
-
-
-
-
     def on_browse(event):
         dlg = wx.FileDialog(frame, "选择要共享的文件", wildcard="All files (*.*)|*.*")
         if dlg.ShowModal() == wx.ID_OK:
             file_text.SetValue(dlg.GetPath())
         dlg.Destroy()
-    
+            
     def on_start(event):
         global server_thread
         port = int(port_text.GetValue())
@@ -1086,7 +1080,26 @@ def main():
             return
         print(file_path)
 
-            
+        # 获取所有可用的IP地址
+        import socket
+        hostname = socket.gethostname()
+        addrinfo = socket.getaddrinfo(hostname, None)
+        
+        # 显示所有IP地址
+        ip_addresses = []
+        for addr in addrinfo:
+            ip_address = addr[4][0]
+            ip_addresses.append(ip_address)
+        
+        if not ip_addresses:
+            wx.MessageBox("无法获取IP地址", "错误", wx.OK | wx.ICON_ERROR)
+            return
+        
+     
+        ip_address = ip_addresses[-2] if len(ip_addresses) > 1 else ip_addresses[0]
+        
+        
+        wx.CallAfter(log_text.AppendText, f"服务器启动在: {ip_address}:{port}请用此连接访问\n")
         
         history_path = os.path.join(target_folder, "history.json")
         history = []
@@ -1095,8 +1108,7 @@ def main():
                 history = json.load(f)
         
         history.append({
-            
-            "url": port,
+            "url": f"{ip_address}:{port}", 
             "filename": os.path.basename(file_path),
             "time": time.strftime("%Y-%m-%d %H:%M:%S")
         })
@@ -1113,10 +1125,7 @@ def main():
             daemon=True
         )
         server_thread.start()
-        if config.get('auto_open_browser', True):
-            import webbrowser
-            webbrowser.open(f"http://localhost:{port}")
-    
+        
     def on_stop(event):
         TPort.stop_file_server(lambda msg: wx.CallAfter(log_text.AppendText, msg))
         start_button.Enable()
