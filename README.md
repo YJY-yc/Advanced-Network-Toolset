@@ -1,7 +1,5 @@
 
-# Advanced Network Toolset (ANT)
-
-> ANT **高级网络工具** 是一个多功能网络工具集，主要用于文件下载、网页分析、文件共享和内网聊天等功能。它基于Python开发，使用wxPython构建图形界面。
+# Advanced Network Toolset (ANTKit)
 
 
 | 版本 | 下载 | 
