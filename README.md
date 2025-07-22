@@ -1,182 +1,74 @@
-
 # Advanced Network Toolset (ANTKit)
-<img width="1004" height="692" alt="image" src="https://github.com/user-attachments/assets/2654882c-e178-46d1-85cd-cdfa0f7a7a64" />
 
-| 版本 | 下载 | 
 
-| ---- | ---- |
-| 3.5.1.8 | [下载](https://yjymain.lanzouq.com/iKXV92spa7mf) |
-| 3.5.1.7 | [下载](https://yjymain.lanzouq.com/iF95e2s5p2cf) |
-| 3.5.1.6 | [下载](https://yjymain.lanzouq.com/ia8rb2re3xje) |
-| 更多版本下载 | [链接](https://yjymain.rth1.xyz/) |
+
+|     版本     |                       下载                       |
+| :----------: | :----------------------------------------------: |
+|   3.5.1.10   | [下载](https://yjymain.lanzouq.com/ijHkj2tfc37e) |
+|   3.5.1.9    | [下载](https://yjymain.lanzouq.com/i6BqH2stp0hc) |
+|   3.5.1.8    | [下载](https://yjymain.lanzouq.com/iKXV92spa7mf) |
+|   3.5.1.7    | [下载](https://yjymain.lanzouq.com/iF95e2s5p2cf) |
+| 更多版本下载 |  [链接](https://yjymain.rth1.xyz/History.html)   |
+
+![](https://github.com/user-attachments/assets/2654882c-e178-46d1-85cd-cdfa0f7a7a64)
+
 ## 主要功能
 
 ### 1. 文件下载
+
 - 普通下载：支持单线程文件下载
+
 - 高级下载：支持多线程分块下载，可自定义线程数和分块大小(测试)
 
-### 2. 网页筛选
-- 提供网页URL分析功能，可提取网页内容信息
+- 批量下载：批量下载文件 格式(示例)：
 
-### 3. 文件共享
+  ```txt
+  xxx.com/f1.zip
+  xxx.com/f2.zip
+  xxx.com/f3.zip
+  ```
+
+  
+
+### 2. 网页筛选
+
+- 提供网页URL筛选功能，可筛选网页内容信息
+
+### 3. DNS编辑
+- 提供DNS编辑功能，更改(添加/移除)host文件
+- 查看DNS缓存
+
+### 4. Ping
+- 提供图形化Ping功能
+
+### 5. 转发文件
+
 - 支持通过HTTP协议共享本地文件
 - 可自定义端口号
 - 提供本地和局域网访问地址
 
-### 4. 内网聊天
+### 6. 内网通讯
+
 - 支持内网即时通讯
 - 提供消息类型选择（普通、加急、命令行）
 - 支持聊天记录导出
 
-### 5. 历史记录
+### 7. 历史记录
+
 - 记录所有下载和文件共享操作
 - 支持复制历史记录的URL
-- 
-### 1. 批量下载
-- 支持批量下载多个文件
-- 线程数可自定义
-- 可导出下载进度
 
 
-## 技术特点
-
-- 多线程下载：使用线程池技术提高下载速度
-- 配置文件：保存用户设置，包括字体、窗口大小、下载路径等
-- 历史记录：记录操作历史
-- 通知系统：使用winotify实现桌面通知
-
-
-
-
-
-# 安装
-### 1. 初始化
-运行软件，将自动完成初始化
-*这将会：*
-- 在APPDATA文件夹下创建配置文件（NetDownloader）
-- 创建下载目录（"D:/downloads/）
+## 截图
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/ff1e28ea-4570-4551-92c3-a62ca009b5bc" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/31a55e65-eb7b-4aab-8360-a93887c5c809" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/483252a7-fecb-406b-b211-aa2921cc51db" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/15edf6a2-bd8e-42bd-8007-75de9ddae484" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/8e860d70-45f5-485b-9f3a-9a7847a262be" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/72c9878c-4a6c-4dc5-bb61-326670bbe50d" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/e0d6c4d6-d653-4631-b063-a42a023c4173" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/a4eb29b4-3fa0-4f02-a1b3-88ee34d6b140" />
+<img width="879" height="660" alt="image" src="https://github.com/user-attachments/assets/b77d3cec-1d4b-4c36-81fb-ba2740d95872" />
 
 
-# 下载
-### 1. 普通下载
-1. 输入文件URL
-2. 点击"开始下载"按钮
-
-### 2.高级下载
-1. 输入文件URL
-2. 输入文件名
-3. 输入线程数和分块大小
-
-### 3. 批量下载
-1. 导入批量下载文件（TXT）
-2. 选择线程数
-3. 点击"开始下载"按钮
-
-
-*注意：*
-- 线程数并非越多越好，线程数过多会导致CPU占用过高，反而降低下载速度
-- 分块大小过小可能会导致下载速度变慢
-- 此功能处于开发阶段
-
-
-# 网页分析
-1. 输入网页URL
-2. 点击"分析"按钮
-3. 网页内容将显示在新窗口中
-4. 可选择是否渲染源码
-
-# 转发文件
-1. 输入文件路径
-2. 点击"转发"按钮
-3. 点击"启动"按钮
-4. 在浏览器中输入共享地址（默认为http://localhost:1524）
-
-*注意：*
-- 若浏览器显示的不是最新文件，请换端口号
-- 图片、HTML文档将以网页形式显示
-- 其他文件将自动下载
-- 处在同一局域网内的用户可通过共享地址（IP：+端口）访问文件
-- Windows防火墙可能会阻止访问，需允许
-
-# 历史记录
-1. 选择要复制的历史记录
-2. 右键菜单点击"复制"按钮
-3. 历史记录的URL将复制到剪贴板
-
-
-
-# 内网聊天功能
-
-## 1. 功能简介
-内网聊天功能允许在同一局域网内的用户进行即时通讯。主要特点包括：
-- 支持文本消息发送
-- 提供消息类型选择（普通、加急、命令行）
-- 支持聊天记录导出
-
-
-## 2. 启动聊天
-
-### 2.1 启动服务器
-1. 作为发起方，打开程序，进入「内网聊天」页面
-2. 点击"启动服务"按钮
-3. 程序会显示IP，将IP告诉对方，对方输入连接的IP和设定好的端口号（默认5000）点击"连接"按钮即可建立双向通讯
-
-### 2.2 连接聊天
-1. 在其他设备上打开程序
-2. 进入"内网聊天"页面
-3. 输入服务器IP地址和端口号
-4. 点击"连接"按钮
-
-## 3. 使用说明
-
-### 3.1 发送消息
-1. 在输入框中输入消息内容
-2. 选择消息类型：
-   - 普通：常规文本消息
-   - 加急：重要消息，会通过Windows通知显示
-   - 命令行：用于发送特殊指令，待对方同意后执行，将返回执行结果
-3. 点击"发送"按钮或按Enter键
-
-### 3.2 查看聊天记录
-1. 聊天记录会实时显示在聊天窗口中
-2. 可以上下滚动查看历史消息
-
-### 3.3 导出聊天记录
-1. 点击"导出"按钮
-2. 选择保存位置和文件名
-3. 聊天记录将以文本文件形式保存
-
-### 3.4 复制历史记录
-1. 点击聊天记录中的任意一条消息
-2. 点击显示消息按钮
-3. 消息内容将展示在下面的框中
-
-
-# 设置
-### 1. 字体设置
-1. 点击关于中的 "首选项"按钮
-2. 在弹出的窗口中选择字体
-### 2. 窗口大小设置
-1. 点击关于中的 "首选项"按钮
-2. 在弹出的窗口中选择窗口大小
-
-### 3. 下载路径设置
-1. 点击关于中的 "首选项"按钮
-2. 在弹出的窗口中选择下载路径
-
-### 4. 其他设置
-1. 点击关于中的 "首选项"按钮
-- 包括默认端口号
-- 是否在转发文件后打开浏览器
-
-
-## 屏幕截图
-![Snipaste_2025-03-09_20-10-25](https://github.com/user-attachments/assets/5f91b6d7-4cce-4272-a73a-559460746777)
-
-![Snipaste_2025-03-09_20-09-34](https://github.com/user-attachments/assets/4dfcd6cd-dd2d-4aef-b563-e82cfee4974f)
-![Snipaste_2025-03-09_20-12-08](https://github.com/user-attachments/assets/de9e87bf-b113-4826-b7ed-5d548e41cf45)
-![Snipaste_2025-03-09_20-11-56](https://github.com/user-attachments/assets/a140ae4a-8bd1-4566-a928-1c143508ef6e)
-![Snipaste_2025-03-09_20-11-50](https://github.com/user-attachments/assets/a65a9f79-e48b-4296-9a74-f98492097648)
-![Snipaste_2025-03-09_20-11-45](https://github.com/user-attachments/assets/85aecd44-db16-4c5c-bd07-4d774de6c729)
-![Snipaste_2025-03-09_20-11-38](https://github.com/user-attachments/assets/8933efbc-598c-4197-95c1-f2d842b91e8b)
 
